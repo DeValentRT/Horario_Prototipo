@@ -167,7 +167,7 @@ body {
   box-shadow: 0 8px 24px rgba(0,0,0,.18);
 }
 .course.hidden {
-  opacity: 0.2;
+  opacity: 0.05;
   transform: scale(0.95);
 }
 .course.hidden:hover {
@@ -605,3 +605,4 @@ textarea.input {
     margin-top: 8px;
   }
 }
+
