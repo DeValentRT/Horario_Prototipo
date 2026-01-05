@@ -516,3 +516,92 @@ textarea.input {
     grid-template-columns: 1fr;
   }
 }
+
+/* Estilos para sesiones múltiples */
+.sessions-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 12px;
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.session-item {
+  background: white;
+  border-radius: 8px;
+  padding: 12px;
+  border: 1px solid #dee2e6;
+}
+
+.session-item .row {
+  align-items: center;
+  margin-bottom: 0;
+}
+
+.session-actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-width: 40px;
+}
+
+.remove-session {
+  background: #f1f3f5;
+  border: none;
+  color: #868e96;
+  font-size: 18px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.remove-session:hover {
+  background: #fa5252;
+  color: white;
+}
+
+.btn-add-session {
+  width: 100%;
+  background: #e7f5ff;
+  color: #228be6;
+  border: 1px dashed #a5d8ff;
+  border-radius: 8px;
+  padding: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 8px;
+}
+
+.btn-add-session:hover {
+  background: #d0ebff;
+  border-color: #74c0fc;
+}
+
+/* Para sesiones únicas (ocultar botón eliminar) */
+.session-item:only-child .remove-session {
+  display: none;
+}
+
+/* Ajustes responsive para sesiones */
+@media (max-width: 768px) {
+  .session-item .row {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .session-actions {
+    grid-column: span 2;
+    justify-content: flex-end;
+    margin-top: 8px;
+  }
+}
