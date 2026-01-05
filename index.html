@@ -164,35 +164,44 @@
             </div>
           </div>
 
-          <div class="row">
-            <div class="field">
-              <label class="label" for="day">Día</label>
-              <select class="select" id="day" required>
-                <option value="">Seleccionar…</option>
-                <option>Lunes</option>
-                <option>Martes</option>
-                <option>Miércoles</option>
-                <option>Jueves</option>
-                <option>Viernes</option>
-                <option>Sábado</option>
-                <option>Domingo</option>
-              </select>
+          <!-- Sección de sesiones múltiples -->
+          <div class="field">
+            <label class="label">Sesiones del curso</label>
+            <div id="sessionsContainer" class="sessions-container">
+              <!-- Las sesiones se agregarán aquí dinámicamente -->
+              <div class="session-item">
+                <div class="row">
+                  <div class="field">
+                    <select class="select session-day" required>
+                      <option value="">Día...</option>
+                      <option>Lunes</option>
+                      <option>Martes</option>
+                      <option>Miércoles</option>
+                      <option>Jueves</option>
+                      <option>Viernes</option>
+                      <option>Sábado</option>
+                      <option>Domingo</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <input class="input session-start" type="time" min="08:00" max="22:00" step="300" placeholder="Inicio" required />
+                  </div>
+                  <div class="field">
+                    <input class="input session-end" type="time" min="08:30" max="22:00" step="300" placeholder="Fin" required />
+                  </div>
+                  <div class="field session-actions">
+                    <button type="button" class="btn-icon remove-session" title="Eliminar sesión">×</button>
+                  </div>
+                </div>
+              </div>
             </div>
-
-            <div class="field">
-              <label class="label" for="room">Aula (opcional)</label>
-              <input class="input" id="room" type="text" placeholder="Ej. B-203" />
-            </div>
+            <button type="button" class="btn-add-session" id="addSessionBtn">+ Añadir otra sesión</button>
           </div>
 
-          <div class="row-3">
+          <div class="row">
             <div class="field">
-              <label class="label" for="start">Inicio</label>
-              <input class="input" id="start" type="time" min="08:00" max="22:00" step="300" required />
-            </div>
-            <div class="field">
-              <label class="label" for="end">Fin</label>
-              <input class="input" id="end" type="time" min="08:30" max="22:00" step="300" required />
+              <label class="label" for="professor">Profesor (opcional)</label>
+              <input class="input" id="professor" type="text" placeholder="Ej. Dr. García" />
             </div>
             <div class="field">
               <label class="label" for="type">Tipo (opcional)</label>
