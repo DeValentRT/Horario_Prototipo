@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Horario universitario</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="title">Horario</div>
+      <button class="btn" id="openModal">+ Añadir curso</button>
+    </div>
+
+    <div class="main-content">
+      <div class="schedule-container">
+        <div class="schedule">
+          <div class="schedule-header">
+            <div>Hora</div>
+            <div>Lunes</div>
+            <div>Martes</div>
+            <div>Miércoles</div>
+            <div>Jueves</div>
+            <div>Viernes</div>
+            <div>Sábado</div>
+            <div>Domingo</div>
+          </div>
+
+          <div class="schedule-grid" id="scheduleGrid">
+            <!-- Time column -->
+            <div class="time-col">
+              <!-- 8:00 to 22:00 -->
+              <div class="time-slot">08:00</div>
+              <div class="time-slot">09:00</div>
+              <div class="time-slot">10:00</div>
+              <div class="time-slot">11:00</div>
+              <div class="time-slot">12:00</div>
+              <div class="time-slot">13:00</div>
+              <div class="time-slot">14:00</div>
+              <div class="time-slot">15:00</div>
+              <div class="time-slot">16:00</div>
+              <div class="time-slot">17:00</div>
+              <div class="time-slot">18:00</div>
+              <div class="time-slot">19:00</div>
+              <div class="time-slot">20:00</div>
+              <div class="time-slot">21:00</div>
+            </div>
+
+            <!-- Day columns -->
+            <div class="day-col" data-day="Lunes">
+              <div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div>
+              <div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div>
+              <div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div>
+              <div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div>
+              <div class="day-cell"></div><div class="day-cell"></div>
+            </div>
+            <div class="day-col" data-day="Martes">
+              <div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div>
+              <div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div>
+              <div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div>
+              <div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div>
+              <div class="day-cell"></div><div class="day-cell"></div>
+            </div>
+            <div class="day-col" data-day="Miércoles">
+              <div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div>
+              <div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div>
+              <div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div>
+              <div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div>
+              <div class="day-cell"></div><div class="day-cell"></div>
+            </div>
+            <div class="day-col" data-day="Jueves">
+              <div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div>
+              <div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div>
+              <div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div>
+              <div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div>
+              <div class="day-cell"></div><div class="day-cell"></div>
+            </div>
+            <div class="day-col" data-day="Viernes">
+              <div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div>
+              <div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div>
+              <div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div>
+              <div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div>
+              <div class="day-cell"></div><div class="day-cell"></div>
+            </div>
+            <div class="day-col" data-day="Sábado">
+              <div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div>
+              <div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div>
+              <div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div>
+              <div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div>
+              <div class="day-cell"></div><div class="day-cell"></div>
+            </div>
+            <div class="day-col" data-day="Domingo">
+              <div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div>
+              <div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div>
+              <div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div>
+              <div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div>
+              <div class="day-cell"></div><div class="day-cell"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sidebar de cursos -->
+      <div class="courses-sidebar">
+        <div class="sidebar-header">
+          <h3>Cursos</h3>
+          <div class="sidebar-actions">
+            <button class="btn-icon" id="toggleAllCourses" title="Mostrar/ocultar todos">
+              <span class="icon">👁️</span>
+            </button>
+          </div>
+        </div>
+        <div class="courses-list" id="coursesList">
+          <!-- Los cursos se agregarán aquí dinámicamente -->
+          <div class="empty-state" id="emptyState">
+            <p>No hay cursos agregados</p>
+            <p class="hint">Añade cursos con el botón "+ Añadir curso"</p>
+          </div>
+        </div>
+
+        <!-- Sección de guardados -->
+        <div class="saved-section">
+          <div class="saved-header">
+            <h3>Guardados <span id="savedCount">(0/10)</span></h3>
+          </div>
+          <div class="saved-list" id="savedList">
+            <div class="empty-saved-state" id="emptySavedState">
+              <p>No hay configuraciones guardadas</p>
+              <p class="hint">Guarda diferentes combinaciones de cursos</p>
+            </div>
+          </div>
+          <button class="btn-save" id="saveCurrentConfig">
+            <span class="icon">💾</span> Guardar configuración actual
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Añadir/Editar Curso -->
+  <div class="modal-backdrop" id="modalBackdrop">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-header">
+        <div class="modal-title" id="modalTitle">Añadir curso</div>
+        <button class="modal-close" id="closeModal" aria-label="Cerrar">×</button>
+      </div>
+      <form id="courseForm">
+        <input type="hidden" id="courseId">
+        <div class="modal-body">
+          <div class="field">
+            <label class="label" for="name">Nombre del curso</label>
+            <input class="input" id="name" type="text" placeholder="Ej. Matemáticas" required />
+          </div>
+
+          <div class="row">
+            <div class="field">
+              <label class="label" for="section">Sección</label>
+              <input class="input" id="section" type="text" placeholder="Ej. 01Q" />
+            </div>
+            <div class="field">
+              <label class="label" for="color">Color</label>
+              <input class="input" id="color" type="color" value="#4f46e5" />
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="field">
+              <label class="label" for="day">Día</label>
+              <select class="select" id="day" required>
+                <option value="">Seleccionar…</option>
+                <option>Lunes</option>
+                <option>Martes</option>
+                <option>Miércoles</option>
+                <option>Jueves</option>
+                <option>Viernes</option>
+                <option>Sábado</option>
+                <option>Domingo</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label class="label" for="room">Aula (opcional)</label>
+              <input class="input" id="room" type="text" placeholder="Ej. B-203" />
+            </div>
+          </div>
+
+          <div class="row-3">
+            <div class="field">
+              <label class="label" for="start">Inicio</label>
+              <input class="input" id="start" type="time" min="08:00" max="22:00" step="300" required />
+            </div>
+            <div class="field">
+              <label class="label" for="end">Fin</label>
+              <input class="input" id="end" type="time" min="08:30" max="22:00" step="300" required />
+            </div>
+            <div class="field">
+              <label class="label" for="type">Tipo (opcional)</label>
+              <select class="select" id="type">
+                <option value="">Sin especificar</option>
+                <option>Teoría/Práctica</option>
+                <option>Laboratorio</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" id="cancelModal">Cancelar</button>
+          <button type="button" class="btn-danger" id="deleteCourse" style="display: none;">Eliminar</button>
+          <button type="submit" class="btn" id="submitBtn">Añadir</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Guardar Configuración -->
+  <div class="modal-backdrop" id="saveModalBackdrop">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="saveModalTitle">
+      <div class="modal-header">
+        <div class="modal-title" id="saveModalTitle">Guardar configuración</div>
+        <button class="modal-close" id="closeSaveModal" aria-label="Cerrar">×</button>
+      </div>
+      <form id="saveConfigForm">
+        <div class="modal-body">
+          <div class="field">
+            <label class="label" for="saveName">Nombre <span class="required">*</span></label>
+            <input class="input" id="saveName" type="text" placeholder="Ej. Horario Completo" required />
+            <p class="hint">Máximo 50 caracteres</p>
+          </div>
+
+          <div class="field">
+            <label class="label" for="saveDescription">Descripción (opcional)</label>
+            <textarea class="input" id="saveDescription" rows="3" placeholder="Ej. Todos los cursos, incluyendo laboratorios"></textarea>
+            <p class="hint">Máximo 200 caracteres</p>
+          </div>
+
+          <div class="field">
+            <div class="hint">Se guardará el estado de visibilidad de todos los grupos de cursos</div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" id="cancelSaveModal">Cancelar</button>
+          <button type="submit" class="btn">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
