@@ -11,7 +11,7 @@ const qs = (sel, el=document) => el.querySelector(sel);
 const qsa = (sel, el=document) => [...el.querySelectorAll(sel)];
 
 // Variables globales
-let editingCourseId = null;
+let editingCourseGroup = null; // Cambiado: ahora edita grupos
 let courses = JSON.parse(localStorage.getItem('courses')) || [];
 let courseGroups = JSON.parse(localStorage.getItem('courseGroups')) || {};
 let groupVisibility = JSON.parse(localStorage.getItem('groupVisibility')) || {};
@@ -32,6 +32,8 @@ const scheduleGrid = qs('#scheduleGrid');
 const coursesList = qs('#coursesList');
 const emptyState = qs('#emptyState');
 const toggleAllCoursesBtn = qs('#toggleAllCourses');
+const sessionsContainer = qs('#sessionsContainer');
+const addSessionBtn = qs('#addSessionBtn');
 
 // Elementos de guardados
 const saveModalBackdrop = qs('#saveModalBackdrop');
@@ -135,21 +137,22 @@ function renderCourse(course) {
   block.style.top = `${topOffset + 2}px`;
   block.style.height = `${Math.max(height - 4, 44)}px`;
   
+  const professorHTML = course.professor ? `<div class="meta">${escapeHTML(course.professor)}</div>` : '';
   const typeHTML = course.type ? `<div class="meta">${escapeHTML(course.type)}</div>` : '';
-  const roomHTML = course.room ? `<div class="meta">Aula: ${escapeHTML(course.room)}</div>` : '';
   
   block.innerHTML = `
     <div class="name">${escapeHTML(course.name)}${course.section ? ' · ' + escapeHTML(course.section) : ''}</div>
     ${typeHTML}
-    ${roomHTML}
+    ${professorHTML}
     <div class="meta">${course.start} – ${course.end}</div>
   `;
   
   block.addEventListener('click', (e) => {
     e.stopPropagation();
-    const courseToEdit = courses.find(c => c.id === course.id);
-    if (courseToEdit) {
-      openModal(courseToEdit);
+    const groupKey = block.dataset.group;
+    const coursesInGroup = courses.filter(c => getCourseGroupKey(c) === groupKey);
+    if (coursesInGroup.length > 0) {
+      openModalForGroup(groupKey, coursesInGroup);
     }
   });
   
@@ -183,9 +186,10 @@ function renderCourseGroups() {
     
     const sessionDetails = group.courses.map(course => {
       const day = course.day.substring(0, 3);
+      const professorText = course.professor ? ` - ${course.professor}` : '';
       return `<div class="course-session">
                 <span class="course-session-day">${day}</span>
-                <span class="course-session-time">${course.start} - ${course.end}${course.room ? ` (${course.room})` : ''}</span>
+                <span class="course-session-time">${course.start} - ${course.end}${professorText}</span>
               </div>`;
     }).join('');
     
@@ -214,8 +218,9 @@ function renderCourseGroups() {
     const groupHeader = groupElement.querySelector('.course-group-header');
     groupHeader.addEventListener('click', (e) => {
       if (e.target === checkbox) return;
-      if (group.courses.length > 0) {
-        openModal(group.courses[0]);
+      const coursesInGroup = group.courses;
+      if (coursesInGroup.length > 0) {
+        openModalForGroup(groupKey, coursesInGroup);
       }
     });
     
@@ -258,6 +263,193 @@ function toggleAllCourses() {
   });
   
   saveGroupData();
+}
+
+// Funciones de sesiones múltiples
+function createSessionElement(session = {}) {
+  const sessionElement = document.createElement('div');
+  sessionElement.className = 'session-item';
+  sessionElement.innerHTML = `
+    <div class="row">
+      <div class="field">
+        <select class="select session-day" required>
+          <option value="">Día...</option>
+          <option ${session.day === 'Lunes' ? 'selected' : ''}>Lunes</option>
+          <option ${session.day === 'Martes' ? 'selected' : ''}>Martes</option>
+          <option ${session.day === 'Miércoles' ? 'selected' : ''}>Miércoles</option>
+          <option ${session.day === 'Jueves' ? 'selected' : ''}>Jueves</option>
+          <option ${session.day === 'Viernes' ? 'selected' : ''}>Viernes</option>
+          <option ${session.day === 'Sábado' ? 'selected' : ''}>Sábado</option>
+          <option ${session.day === 'Domingo' ? 'selected' : ''}>Domingo</option>
+        </select>
+      </div>
+      <div class="field">
+        <input class="input session-start" type="time" min="08:00" max="22:00" step="300" 
+               placeholder="Inicio" required value="${session.start || ''}" />
+      </div>
+      <div class="field">
+        <input class="input session-end" type="time" min="08:30" max="22:00" step="300" 
+               placeholder="Fin" required value="${session.end || ''}" />
+      </div>
+      <div class="field session-actions">
+        <button type="button" class="btn-icon remove-session" title="Eliminar sesión">×</button>
+      </div>
+    </div>
+  `;
+  
+  const removeBtn = sessionElement.querySelector('.remove-session');
+  removeBtn.addEventListener('click', () => {
+    if (sessionsContainer.children.length > 1) {
+      sessionElement.remove();
+    }
+  });
+  
+  return sessionElement;
+}
+
+function addNewSession() {
+  const sessionElement = createSessionElement();
+  sessionsContainer.appendChild(sessionElement);
+}
+
+function getSessionsFromForm() {
+  const sessionElements = qsa('.session-item', sessionsContainer);
+  const sessions = [];
+  
+  sessionElements.forEach(sessionEl => {
+    const day = qs('.session-day', sessionEl).value;
+    const start = qs('.session-start', sessionEl).value;
+    const end = qs('.session-end', sessionEl).value;
+    
+    if (day && start && end) {
+      sessions.push({ day, start, end });
+    }
+  });
+  
+  return sessions;
+}
+
+// Funciones de modal (cursos)
+function openModalForGroup(groupKey, coursesInGroup) {
+  if (coursesInGroup.length === 0) return;
+  
+  modalTitle.textContent = 'Editar curso';
+  submitBtn.textContent = 'Guardar';
+  deleteCourseBtn.style.display = 'block';
+  
+  const firstCourse = coursesInGroup[0];
+  
+  qs('#name').value = firstCourse.name;
+  qs('#section').value = firstCourse.section || '';
+  qs('#color').value = firstCourse.color;
+  qs('#professor').value = firstCourse.professor || '';
+  qs('#type').value = firstCourse.type || '';
+  
+  // Limpiar sesiones existentes
+  sessionsContainer.innerHTML = '';
+  
+  // Agregar sesiones del grupo
+  coursesInGroup.forEach(course => {
+    const sessionElement = createSessionElement({
+      day: course.day,
+      start: course.start,
+      end: course.end
+    });
+    sessionsContainer.appendChild(sessionElement);
+  });
+  
+  editingCourseGroup = groupKey;
+  modalBackdrop.style.display = 'flex';
+}
+
+function openModal() {
+  modalTitle.textContent = 'Añadir curso';
+  submitBtn.textContent = 'Añadir';
+  deleteCourseBtn.style.display = 'none';
+  
+  qs('#name').value = '';
+  qs('#section').value = '';
+  qs('#color').value = '#4f46e5';
+  qs('#professor').value = '';
+  qs('#type').value = '';
+  
+  // Limpiar y agregar una sesión inicial
+  sessionsContainer.innerHTML = '';
+  addNewSession();
+  
+  editingCourseGroup = null;
+  modalBackdrop.style.display = 'flex';
+}
+
+function closeModal() {
+  modalBackdrop.style.display = 'none';
+  form.reset();
+  qs('#color').value = '#4f46e5';
+  qs('#type').value = '';
+  editingCourseGroup = null;
+}
+
+// Funciones de cursos
+function addOrUpdateCourseGroup(courseData) {
+  const { name, section, color, professor, type, sessions } = courseData;
+  const groupKey = `${name}|${section || ''}`;
+  
+  // Eliminar cursos existentes del grupo (si estamos editando)
+  if (editingCourseGroup) {
+    courses = courses.filter(course => getCourseGroupKey(course) !== editingCourseGroup);
+  }
+  
+  // Agregar nuevos cursos para cada sesión
+  sessions.forEach(session => {
+    const course = {
+      id: generateId(),
+      name,
+      section: section || '',
+      color,
+      professor: professor || '',
+      type: type || '',
+      day: session.day,
+      start: session.start,
+      end: session.end
+    };
+    
+    courses.push(course);
+  });
+  
+  // Actualizar visibilidad si es un grupo nuevo
+  if (groupVisibility[groupKey] === undefined) {
+    groupVisibility[groupKey] = true;
+  }
+  
+  saveCourses();
+  renderCourses();
+  
+  // Desactivar guardado activo si hubo cambios
+  if (activeSavedId) {
+    activeSavedId = null;
+    renderSavedConfigs();
+  }
+}
+
+function deleteCourseGroup(groupKey) {
+  if (confirm('¿Estás seguro de que quieres eliminar este curso y todas sus sesiones?')) {
+    // Eliminar todos los cursos del grupo
+    courses = courses.filter(course => getCourseGroupKey(course) !== groupKey);
+    
+    // Eliminar visibilidad del grupo
+    delete groupVisibility[groupKey];
+    
+    saveCourses();
+    renderCourses();
+    
+    // Desactivar guardado activo
+    if (activeSavedId) {
+      activeSavedId = null;
+      renderSavedConfigs();
+    }
+    
+    closeModal();
+  }
 }
 
 // Funciones de guardados
@@ -388,42 +580,6 @@ function deleteSavedConfig(configId) {
   renderSavedConfigs();
 }
 
-// Funciones de modal (cursos)
-function openModal(course = null) {
-  if (course) {
-    modalTitle.textContent = 'Editar curso';
-    submitBtn.textContent = 'Guardar';
-    deleteCourseBtn.style.display = 'block';
-    
-    qs('#name').value = course.name;
-    qs('#section').value = course.section || '';
-    qs('#color').value = course.color;
-    qs('#day').value = course.day;
-    qs('#room').value = course.room || '';
-    qs('#start').value = course.start;
-    qs('#end').value = course.end;
-    qs('#type').value = course.type || '';
-    courseIdInput.value = course.id;
-    
-    editingCourseId = course.id;
-  } else {
-    modalTitle.textContent = 'Añadir curso';
-    submitBtn.textContent = 'Añadir';
-    deleteCourseBtn.style.display = 'none';
-    courseIdInput.value = '';
-    editingCourseId = null;
-  }
-  modalBackdrop.style.display = 'flex';
-}
-
-function closeModal() {
-  modalBackdrop.style.display = 'none';
-  form.reset();
-  qs('#color').value = '#4f46e5';
-  qs('#type').value = '';
-  editingCourseId = null;
-}
-
 // Funciones de modal (guardados)
 function openSaveModal() {
   saveModalBackdrop.style.display = 'flex';
@@ -437,68 +593,8 @@ function closeSaveModal() {
   saveConfigForm.reset();
 }
 
-// Funciones de cursos
-function addOrUpdateCourse(courseData) {
-  if (editingCourseId) {
-    const index = courses.findIndex(c => c.id === editingCourseId);
-    if (index !== -1) {
-      const oldGroupKey = getCourseGroupKey(courses[index]);
-      courses[index] = { ...courseData, id: editingCourseId };
-      const newGroupKey = getCourseGroupKey(courses[index]);
-      
-      if (oldGroupKey !== newGroupKey && groupVisibility[oldGroupKey] !== undefined) {
-        groupVisibility[newGroupKey] = groupVisibility[oldGroupKey];
-      }
-    }
-  } else {
-    courseData.id = generateId();
-    courses.push(courseData);
-    
-    const groupKey = getCourseGroupKey(courseData);
-    if (groupVisibility[groupKey] === undefined) {
-      groupVisibility[groupKey] = true;
-    }
-  }
-  
-  saveCourses();
-  renderCourses();
-  
-  // Desactivar guardado activo si hubo cambios
-  if (activeSavedId) {
-    activeSavedId = null;
-    renderSavedConfigs();
-  }
-}
-
-function deleteCourse(id) {
-  if (confirm('¿Estás seguro de que quieres eliminar este curso?')) {
-    const courseIndex = courses.findIndex(course => course.id === id);
-    if (courseIndex !== -1) {
-      const course = courses[courseIndex];
-      const groupKey = getCourseGroupKey(course);
-      
-      courses.splice(courseIndex, 1);
-      
-      const remainingInGroup = courses.filter(c => getCourseGroupKey(c) === groupKey);
-      if (remainingInGroup.length === 0) {
-        delete groupVisibility[groupKey];
-      }
-      
-      saveCourses();
-      renderCourses();
-      
-      // Desactivar guardado activo
-      if (activeSavedId) {
-        activeSavedId = null;
-        renderSavedConfigs();
-      }
-    }
-    closeModal();
-  }
-}
-
 // Event Listeners
-openModalBtn.addEventListener('click', () => openModal());
+openModalBtn.addEventListener('click', openModal);
 closeModalBtn.addEventListener('click', closeModal);
 cancelModalBtn.addEventListener('click', closeModal);
 modalBackdrop.addEventListener('click', (e) => {
@@ -506,10 +602,12 @@ modalBackdrop.addEventListener('click', (e) => {
 });
 
 deleteCourseBtn.addEventListener('click', () => {
-  if (editingCourseId) {
-    deleteCourse(editingCourseId);
+  if (editingCourseGroup) {
+    deleteCourseGroup(editingCourseGroup);
   }
 });
+
+addSessionBtn.addEventListener('click', addNewSession);
 
 toggleAllCoursesBtn.addEventListener('click', toggleAllCourses);
 
@@ -518,34 +616,41 @@ form.addEventListener('submit', (e) => {
   
   const name = qs('#name').value.trim();
   const section = qs('#section').value.trim();
-  const day = qs('#day').value;
-  const start = qs('#start').value;
-  const end = qs('#end').value;
   const color = qs('#color').value;
+  const professor = qs('#professor').value.trim();
   const type = qs('#type').value;
-  const room = qs('#room').value.trim();
   
-  if (!name || !day || !start || !end) return;
-  
-  const startMin = toMinutes(start);
-  const endMin = toMinutes(end);
-  if (endMin <= startMin) {
-    alert('La hora de fin debe ser mayor a la de inicio.');
+  if (!name) {
+    alert('Por favor ingresa el nombre del curso.');
     return;
+  }
+  
+  const sessions = getSessionsFromForm();
+  if (sessions.length === 0) {
+    alert('Por favor agrega al menos una sesión.');
+    return;
+  }
+  
+  // Validar horarios
+  for (const session of sessions) {
+    const startMin = toMinutes(session.start);
+    const endMin = toMinutes(session.end);
+    if (endMin <= startMin) {
+      alert(`En la sesión del ${session.day}: la hora de fin debe ser mayor a la de inicio.`);
+      return;
+    }
   }
   
   const courseData = {
     name,
     section,
-    day,
-    start,
-    end,
     color,
+    professor,
     type,
-    room
+    sessions
   };
   
-  addOrUpdateCourse(courseData);
+  addOrUpdateCourseGroup(courseData);
   closeModal();
 });
 
